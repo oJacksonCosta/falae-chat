@@ -9,22 +9,7 @@ import { addUserToRoom, removeUserFromRoom } from "@/lib/rooms"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import type { User, Message } from "@/lib/types"
-import {
-  ArrowLeft,
-  Copy,
-  Paperclip,
-  Send,
-  Trash,
-  Camera,
-  FileIcon,
-  ImageIcon as ImageIconLucide,
-  ImageIcon,
-  Loader2,
-  LogOut,
-  ChevronDown,
-  X,
-  Flame,
-} from "lucide-react"
+import { ArrowLeft, Copy, Paperclip, Send, Trash, Loader2, LogOut, ChevronDown, X, Flame } from "lucide-react"
 import { MessageGroup } from "@/components/message-group"
 import { TypingIndicator } from "@/components/typing-indicator"
 import { EmojiPicker } from "@/components/emoji-picker"
@@ -48,8 +33,6 @@ import { useNotification } from "@/hooks/use-notification"
 import { useTypingIndicator } from "@/hooks/use-typing-indicator"
 import { UserAvatar } from "@/components/ui/user-avatar"
 import { v4 as uuidv4 } from "uuid"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface ChatRoomProps {
   roomId: string
@@ -141,7 +124,7 @@ function UploadingFileMessage({
           ) : (
             <div className="bg-blue-500 bg-opacity-50 rounded-lg rounded-tr-none p-3 backdrop-blur-sm">
               <div className="flex items-center space-x-3">
-                <FileIcon className="h-8 w-8 text-white" />
+                <span className="h-8 w-8 text-white">📁</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate text-white">{fileName || "Arquivo"}</p>
                   {fileSize && <p className="text-xs text-white opacity-80">{formatFileSize(fileSize)}</p>}
@@ -181,16 +164,11 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
   >([])
   const [showShareLink, setShowShareLink] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [showCameraDialog, setShowCameraDialog] = useState(false)
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null)
-  const [isTakingPhoto, setIsTakingPhoto] = useState(false)
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [isDestructive, setIsDestructive] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isPageVisible, setIsPageVisible] = useState(true)
   const [isNavigating, setIsNavigating] = useState(false)
   const unsubscribeRef = useRef<() => void | null>()
@@ -604,12 +582,12 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
       const messageData: any = {
         content: newMessage,
         type: "text",
-        sender: currentUser.name,
+        sender: currentUser.username,
         senderId: currentUser.id,
         timestamp: serverTimestamp(),
         senderPhotoURL: currentUser.photoURL || null,
         readBy: [currentUser.id], // Marcar como lida pelo remetente
-        isDestructive,
+        isDestructive: isDestructive,
       }
 
       // Adicionar timer destrutivo se habilitado
@@ -625,6 +603,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
           sender: replyingTo.senderName,
           type: replyingTo.type,
         }
+        setReplyingTo(null)
       }
 
       const messagesRef = collection(db, "rooms", roomId, "messages")
@@ -632,7 +611,6 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
 
       console.log("✅ Mensagem enviada com sucesso")
       setNewMessage("")
-      setReplyingTo(null)
       setIsDestructive(false)
 
       // Forçar rolagem para o final quando enviar mensagem
@@ -708,7 +686,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
           type: fileType,
           fileName: file.name,
           fileSize: file.size,
-          sender: currentUser.name,
+          sender: currentUser.username,
           senderId: currentUser.id,
           timestamp: serverTimestamp(),
           senderPhotoURL: currentUser.photoURL || null,
@@ -810,173 +788,6 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
       description: "Você saiu da sala como convidado.",
     })
     router.push("/")
-  }
-
-  async function startCamera() {
-    try {
-      console.log("Solicitando acesso à câmera...")
-
-      const constraints = {
-        video: {
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints)
-      console.log("Acesso à câmera concedido")
-
-      setCameraStream(stream)
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-
-        // Garantir que o vídeo esteja carregado antes de tentar tirar uma foto
-        videoRef.current.onloadedmetadata = () => {
-          console.log("Vídeo carregado, dimensões:", videoRef.current?.videoWidth, "x", videoRef.current?.videoHeight)
-          if (videoRef.current) {
-            videoRef.current.play().catch((err) => {
-              console.error("Erro ao reproduzir vídeo:", err)
-            })
-          }
-        }
-      } else {
-        console.error("Referência de vídeo não disponível")
-        throw new Error("Erro ao inicializar câmera")
-      }
-    } catch (error) {
-      console.error("Erro ao acessar câmera:", error)
-      toast({
-        title: "Erro ao acessar câmera",
-        description: "Não foi possível acessar sua câmera. Verifique as permissões.",
-        variant: "destructive",
-      })
-      setShowCameraDialog(false)
-    }
-  }
-
-  function stopCamera() {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop())
-      setCameraStream(null)
-    }
-    setShowCameraDialog(false)
-  }
-
-  async function takePhoto() {
-    if (!videoRef.current || !canvasRef.current || !currentUser?.id || !roomId) {
-      console.error("Referências de vídeo ou canvas não disponíveis")
-      return
-    }
-
-    setIsTakingPhoto(true)
-
-    try {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-      const context = canvas.getContext("2d")
-
-      if (!context) {
-        console.error("Contexto do canvas não disponível")
-        return
-      }
-
-      // Definir as dimensões do canvas para corresponder ao vídeo
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-
-      console.log("Dimensões do vídeo:", video.videoWidth, "x", video.videoHeight)
-      console.log("Dimensões do canvas:", canvas.width, "x", canvas.height)
-
-      // Desenhar o quadro atual do vídeo no canvas
-      context.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-      // Converter o canvas para blob
-      const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob(
-          (blob) => {
-            resolve(blob)
-          },
-          "image/jpeg",
-          0.95,
-        )
-      })
-
-      if (!blob) {
-        throw new Error("Não foi possível capturar a foto")
-      }
-
-      console.log("Foto capturada com sucesso, tamanho:", blob.size, "bytes")
-
-      // Criar um arquivo a partir do blob
-      const file = new File([blob], `camera-photo-${Date.now()}.jpg`, { type: "image/jpeg" })
-      const uploadId = uuidv4()
-
-      // Adicionar à lista de arquivos em upload
-      setUploadingFiles((prev) => [
-        ...prev,
-        {
-          id: uploadId,
-          type: "image",
-          fileName: file.name,
-          fileSize: file.size,
-        },
-      ])
-
-      // Fechar a câmera
-      stopCamera()
-
-      // Fazer upload do arquivo
-      console.log("Iniciando upload da foto...")
-      const result = await uploadFile(file)
-
-      if (result.url) {
-        console.log("Upload concluído, URL:", result.url)
-
-        const messageData: any = {
-          content: result.url,
-          type: "image",
-          fileName: file.name,
-          fileSize: file.size,
-          sender: currentUser.name,
-          senderId: currentUser.id,
-          timestamp: serverTimestamp(),
-          senderPhotoURL: currentUser.photoURL || null,
-          readBy: [currentUser.id], // Marcar como lida pelo remetente
-        }
-
-        // Adicionar informações de resposta se estiver respondendo
-        if (replyingTo) {
-          messageData.replyTo = {
-            messageId: replyingTo.id,
-            content: replyingTo.content,
-            sender: replyingTo.senderName,
-            type: replyingTo.type,
-          }
-          setReplyingTo(null)
-        }
-
-        // Adicionar mensagem com a imagem
-        const messagesRef = collection(db, "rooms", roomId, "messages")
-        await addDoc(messagesRef, messageData)
-
-        console.log("Mensagem com imagem enviada com sucesso")
-      }
-
-      // Remover da lista de uploads
-      setUploadingFiles((prev) => prev.filter((item) => item.id !== uploadId))
-    } catch (error: any) {
-      console.error("Erro ao capturar foto:", error)
-      toast({
-        title: "Erro ao capturar foto",
-        description: error.message || "Não foi possível capturar a foto. Tente novamente.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsTakingPhoto(false)
-    }
   }
 
   // Verificar se os dados necessários estão disponíveis
@@ -1143,7 +954,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
         <div className="container mx-auto max-w-4xl">
           <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
-            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="*/*" />
 
             <Button
               type="button"
@@ -1155,37 +966,6 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
             >
               <Paperclip className="h-5 w-5" />
             </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  disabled={isUploading}
-                  className="mb-1 bg-transparent"
-                >
-                  <ImageIconLucide className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setShowCameraDialog(true)}>
-                  <Camera className="h-4 w-4 mr-2" />
-                  <span>Câmera</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (fileInputRef.current) {
-                      fileInputRef.current.accept = "image/*"
-                      fileInputRef.current.click()
-                    }
-                  }}
-                >
-                  <ImageIcon className="h-4 w-4 mr-2" />
-                  <span>Galeria</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             <div className="flex-1 relative">
               <Textarea
@@ -1201,7 +981,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
                 }}
                 placeholder={replyingTo ? `Respondendo para ${replyingTo.senderName}...` : "Digite sua mensagem..."}
                 disabled={isLoading || isUploading}
-                className="flex-1 min-h-[40px] max-h-[120px] resize-none pr-20"
+                className="flex-1 min-h-[40px] max-h-[120px] resize-none pr-24"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault()
@@ -1216,7 +996,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
               />
 
               {/* Botões dentro do input */}
-              <div className="absolute right-2 bottom-2 flex items-center space-x-1">
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
                 <EmojiPicker onEmojiSelect={handleEmojiSelect} disabled={isLoading || isUploading} />
 
                 <Button
@@ -1251,51 +1031,6 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
 
       {/* Share Link Modal */}
       {showShareLink && <ShareLink roomId={roomId} roomName={roomName} onClose={() => setShowShareLink(false)} />}
-
-      {/* Camera Dialog */}
-      <Dialog
-        open={showCameraDialog}
-        onOpenChange={(open) => {
-          if (!open) stopCamera()
-          setShowCameraDialog(open)
-          if (open) startCamera()
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Tirar foto</DialogTitle>
-            <DialogDescription>Use sua câmera para tirar uma foto e enviar no chat.</DialogDescription>
-          </DialogHeader>
-          <div className="relative bg-black rounded-md overflow-hidden">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              className="w-full h-auto rounded-md"
-              style={{ maxHeight: "60vh" }}
-            />
-            <canvas ref={canvasRef} className="hidden" />
-            {isTakingPhoto && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                <Loader2 className="h-10 w-10 animate-spin text-white" />
-              </div>
-            )}
-          </div>
-          <div className="flex justify-center mt-4">
-            <Button
-              onClick={takePhoto}
-              disabled={isTakingPhoto}
-              className="rounded-full w-16 h-16 p-0 flex items-center justify-center relative"
-            >
-              {isTakingPhoto ? (
-                <Loader2 className="h-8 w-8 animate-spin" />
-              ) : (
-                <div className="w-12 h-12 rounded-full border-4 border-white" />
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

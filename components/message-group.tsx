@@ -201,7 +201,7 @@ export function MessageGroup({ messages, sender, currentUser, onReply }: Message
           <UserAvatar
             user={{
               id: isOwnMessage ? currentUser.id : sender.id,
-              name: isOwnMessage ? currentUser.name : sender.name,
+              username: isOwnMessage ? currentUser.username : sender.username,
               photoURL: isOwnMessage ? currentUser.photoURL : messages[0].senderPhotoURL,
               email: "",
               isGuest: isOwnMessage ? currentUser.isGuest : sender.isGuest,
@@ -212,7 +212,7 @@ export function MessageGroup({ messages, sender, currentUser, onReply }: Message
         </div>
 
         <div className={`flex flex-col ${isOwnMessage ? "items-end" : "items-start"} space-y-1 flex-1`}>
-          {!isOwnMessage && <span className="text-xs text-gray-500 dark:text-gray-400 px-2">{sender.name}</span>}
+          {!isOwnMessage && <span className="text-xs text-gray-500 dark:text-gray-400 px-2">{sender.username}</span>}
 
           {messages.map((message, index) => {
             const isLastMessage = index === messages.length - 1

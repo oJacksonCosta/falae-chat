@@ -953,7 +953,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
       {/* Message Input */}
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
         <div className="container mx-auto max-w-4xl">
-          <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
+          <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
             <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="*/*" />
 
             <Button
@@ -962,7 +962,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="mb-1"
+              // CLASSE 'mb-1' REMOVIDA
             >
               <Paperclip className="h-5 w-5" />
             </Button>
@@ -1021,7 +1021,8 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
               type="submit"
               size="icon"
               disabled={isLoading || isUploading || !newMessage.trim()}
-              className="relative mb-1"
+              // CLASSE 'mb-1' REMOVIDA
+              className="relative"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>

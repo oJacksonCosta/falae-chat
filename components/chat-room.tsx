@@ -1005,11 +1005,11 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
                   size="sm"
                   onClick={() => setIsDestructive(!isDestructive)}
                   disabled={isLoading || isUploading}
-                  className={`h-8 w-8 p-0 ${
-                    isDestructive
-                      ? "text-red-500 hover:text-red-600"
-                      : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  }`}
+                 className={`h-8 w-8 p-0 hover:bg-transparent ${
+    isDestructive
+      ? "text-red-500 hover:text-red-500" // Mantém a cor vermelha no hover
+      : "text-gray-500 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-400" // Mantém a cor cinza no hover
+  }`}
                   title="Mensagem destrutiva (10s)"
                 >
                   <Flame className="h-4 w-4" />

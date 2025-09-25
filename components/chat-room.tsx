@@ -423,7 +423,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
             content: data.content,
             type: data.type,
             sender: data.sender,
-            senderId: data.senderId,
+            senderId: data.senderId || "unknown_sender", // <-- CORREÇÃO: Adiciona um fallback de string
             timestamp,
             fileName: data.fileName,
             fileSize: data.fileSize,
@@ -1005,14 +1005,14 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
                   size="sm"
                   onClick={() => setIsDestructive(!isDestructive)}
                   disabled={isLoading || isUploading}
-                 className={`h-8 w-8 p-0 hover:bg-transparent ${
+                 className={`p-0 hover:bg-transparent ${
     isDestructive
       ? "text-red-500 hover:text-red-500" // Mantém a cor vermelha no hover
       : "text-gray-500 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-400" // Mantém a cor cinza no hover
   }`}
                   title="Mensagem destrutiva (10s)"
                 >
-                  <Flame className="h-4 w-4" />
+                  <Flame className="h-5 w-5" />
                 </Button>
               </div>
             </div>

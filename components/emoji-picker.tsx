@@ -131,7 +131,7 @@ export function EmojiPicker({ onEmojiSelect, disabled }: EmojiPickerProps) {
           variant="ghost"
           size="sm"
           disabled={disabled}
-           className="h-8 w-8 p-0 text-gray-500 dark:text-gray-400 hover:bg-transparent hover:text-gray-500 dark:hover:bg-transparent dark:hover:text-gray-400"
+          className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           <Smile className="h-4 w-4" />
         </Button>

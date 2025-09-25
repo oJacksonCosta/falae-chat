@@ -423,7 +423,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
             content: data.content,
             type: data.type,
             sender: data.sender,
-            senderId: data.senderId || "unknown_sender", // <-- CORREÇÃO: Adiciona um fallback de string
+            senderId: data.senderId,
             timestamp,
             fileName: data.fileName,
             fileSize: data.fileSize,
@@ -953,7 +953,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
       {/* Message Input */}
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
         <div className="container mx-auto max-w-4xl">
-          <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+          <form onSubmit={handleSendMessage} className="flex items-end space-x-2">
             <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="*/*" />
 
             <Button
@@ -962,7 +962,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              // CLASSE 'mb-1' REMOVIDA
+              className="mb-1"
             >
               <Paperclip className="h-5 w-5" />
             </Button>
@@ -1005,14 +1005,14 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
                   size="sm"
                   onClick={() => setIsDestructive(!isDestructive)}
                   disabled={isLoading || isUploading}
-                 className={`p-0 hover:bg-transparent ${
-    isDestructive
-      ? "text-red-500 hover:text-red-500" // Mantém a cor vermelha no hover
-      : "text-gray-500 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-400" // Mantém a cor cinza no hover
-  }`}
+                  className={`h-8 w-8 p-0 ${
+                    isDestructive
+                      ? "text-red-500 hover:text-red-600"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  }`}
                   title="Mensagem destrutiva (10s)"
                 >
-                  <Flame className="h-5 w-5" />
+                  <Flame className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -1021,8 +1021,7 @@ export default function ChatRoom({ roomId, roomName, user, isOwner }: ChatRoomPr
               type="submit"
               size="icon"
               disabled={isLoading || isUploading || !newMessage.trim()}
-              // CLASSE 'mb-1' REMOVIDA
-              className="relative"
+              className="relative mb-1"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
